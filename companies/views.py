@@ -54,16 +54,16 @@ class JobPositionListView(View):
             return JsonResponse({'results' : results}, status=200)
 
         except ValueError:
-            return JsonResponse({'message' : 'VALUE_ERROR'}, status=400)
+            return JsonResponse({'message' : 'value error'}, status=400)
             
 
 class JobPositionDetailView(View):
-    def get(self, request, position_id):
+    def get(self, request, job_position_id):
         try:
             position = Position.objects\
                                .select_related('companies')\
                                .exclude(status='deleted')\
-                               .get(id=position_id)
+                               .get(id=job_position_id)
 
             company  = position.companies
             
@@ -84,7 +84,7 @@ class JobPositionDetailView(View):
             return JsonResponse({'result' : result}, status=200)
         
         except Position.DoesNotExist:
-            return JsonResponse({'message' : 'NOT_EXIST_POSITON'}, status=400)
+            return JsonResponse({'message' : 'position not existed'}, status=400)
 
 
 class JobPositionView(View):
@@ -120,18 +120,18 @@ class JobPositionView(View):
             )
             
             if not is_created:
-                return JsonResponse({'message' : 'ALREADY_EXISTED_EQUAL_POSITION'}, status=400)
+                return JsonResponse({'message' : 'equal position already existed'}, status=400)
             
-            return JsonResponse({'message' : 'NEW_POSITON_CREATED' }, status=201)
+            return JsonResponse({'message' : 'new position created'}, status=201)
     
         except KeyError:
-            return JsonResponse({'message' : 'KEY_ERROR'}, status=400)
+            return JsonResponse({'message' : 'key error'}, status=400)
         except Company.DoesNotExist:
-            return JsonResponse({'message' : 'NOT_EXIST_COMPANY'}, status=400)
+            return JsonResponse({'message' : 'company not existed'}, status=400)
         except Subcategory.DoesNotExist:
-            return JsonResponse({'message' : 'NOT_EXIST_SUBCATEGORY'}, status=400)
+            return JsonResponse({'message' : 'subcategory not existed'}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status=400)
+            return JsonResponse({'message' : 'json decode error'}, status=400)
     
     def patch(self, request):
         try:
@@ -140,13 +140,13 @@ class JobPositionView(View):
             company_id = data.get('company_id', None)
             
             if company_id:
-                return JsonResponse({'message' : 'CANNOT_CHANGE_COMPANY_ID'}, status=400)
+                return JsonResponse({'message' : 'cannot change company id'}, status=400)
             
             position_id    = data.get('position_id', None)
             subcategory_id = data.get('subcategory_id', None)
             
             if not position_id or not subcategory_id:
-                return JsonResponse({'message' : 'POSITION_ID OR SUBCATEGORY_ID IS REQUIRED'}, status=400)
+                return JsonResponse({'message' : 'position id or subcategory id is required'}, status=400)
             
             position_instance = Position.objects.get(id=position_id)
             
@@ -161,35 +161,36 @@ class JobPositionView(View):
             
             position_instance.save()
 
-            return JsonResponse({'message' : 'POSITION_UPDATED'}, status=200)
+            return JsonResponse({'message' : 'position updated'}, status=200)
             
         except Position.DoesNotExist:
-            return JsonResponse({'message' : 'NOT_EXIST_POSITION'}, status=400)
+            return JsonResponse({'message' : 'position not existed'}, status=400)
         except Subcategory.DoesNotExist:
-            return JsonResponse({'message' : 'NOT_EXIST_SUBCATEGORY'}, status=400)
+            return JsonResponse({'message' : 'subcategory not existed'}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status=400)
-        
-    def delete(self, request):
+            return JsonResponse({'message' : 'json decode error'}, status=400)
+    
+    # soft_delete
+    def delete(self, request):     
         try:
             data = json.loads(request.body)
             
             position_id = data.get('position_id', None)
             
             if not position_id:
-                return JsonResponse({'message' : 'POSITION_ID IS REQUIRED'}, status=400)
+                return JsonResponse({'message' : 'position id is required'}, status=400)
             
             position_instance = Position.objects.get(id=position_id)
             
             if position_instance.status == 'deleted':
-                return JsonResponse({'message' : 'ALREADY_DELETED_POSITION'}, status=400)
+                return JsonResponse({'message' : 'position already deleted'}, status=400)
             
             position_instance.status = 'deleted'
             position_instance.save()
             
-            return JsonResponse({'message' : 'POSITION_DELETED'}, status=200)
+            return JsonResponse({'message' : 'position deleted'}, status=200)
     
         except Position.DoesNotExist:
-            return JsonResponse({'message' : 'NOT_EXIST_POSITION'}, status=400)
+            return JsonResponse({'message' : 'position not existed'}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({'messsage' : 'JSON_DECODE_ERROR'}, status=400)
+            return JsonResponse({'messsage' : 'json decode error'}, status=400)
