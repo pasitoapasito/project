@@ -24,7 +24,7 @@ class Position(TimeStampModel):
     description   = models.CharField(max_length=1000)
     position      = models.CharField(max_length=200)
     technology    = models.CharField(max_length=200)
-    status        = models.CharField(max_length=200, choices=STATUS_TYPES, default='recruitment_ended')
+    status        = models.CharField(max_length=200, choices=STATUS_TYPES, default='under_recruitment')
     compensation  = models.PositiveIntegerField()
     due_date      = models.DateField()
     companies     = models.ForeignKey('companies.Company', on_delete=models.CASCADE)
