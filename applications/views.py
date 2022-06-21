@@ -10,7 +10,6 @@ from core.utils          import query_debugger
 
 
 class ApplicationView(View):
-    @query_debugger
     def post(self, request, job_position_id):
         try:
             with transaction.atomic():

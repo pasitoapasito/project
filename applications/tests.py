@@ -208,7 +208,6 @@ class ApplicationTest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {'message': 'key error user_id'})
     
-    
     def test_fail_apply_position_due_to_position_not_existed(self):
         client = Client()
         data   = {
