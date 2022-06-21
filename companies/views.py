@@ -5,9 +5,11 @@ from django.http      import JsonResponse
 from django.db.models import Q
 
 from companies.models import Company, Position, Subcategory
+from core.utils       import query_debugger
 
 
 class JobPositionListView(View):
+    @query_debugger
     def get(self, request):
         try:
             search     = request.GET.get('search', None)
@@ -27,6 +29,7 @@ class JobPositionListView(View):
                 q |= Q(title__icontains = search)
                 q |= Q(description__icontains = search)
                 q |= Q(technology__icontains = search)
+                q |= Q(position__icontains = search)
                 q |= Q(companies__name__icontains = search)
                 q |= Q(companies__description__icontains = search)
                 
@@ -53,11 +56,12 @@ class JobPositionListView(View):
             
             return JsonResponse({'results' : results}, status=200)
 
-        except ValueError:
-            return JsonResponse({'message' : 'value error'}, status=400)
+        except KeyError:
+            return JsonResponse({'message' : 'key error'}, status=400)
             
 
 class JobPositionDetailView(View):
+    @query_debugger
     def get(self, request, job_position_id):
         try:
             position = Position.objects\
@@ -77,7 +81,7 @@ class JobPositionDetailView(View):
                     'job_compensation'    : position.compensation,
                     'technology'          : position.technology,
                     'description'         : position.description,
-                    'other_job_positions' : [other_position.id for other_position in company.position_set.all()],
+                    'other_job_positions' : [other_position.id for other_position in company.position_set.all() if other_position.id != position.id],
                 }
             ]
 
@@ -110,12 +114,12 @@ class JobPositionView(View):
                 subcategories  = subcategory,
                 title          = title,
                 position       = position,
+                technology     = technology,
                 status         = status,
                 defaults       = {
                     'compensation' : compensation,
                     'description'  : description,
-                    'technology'   : technology,
-                    'due_date'     : due_date,
+                    'due_date'     : due_date
                 },
             )
             
@@ -126,6 +130,8 @@ class JobPositionView(View):
     
         except KeyError:
             return JsonResponse({'message' : 'key error'}, status=400)
+        except TypeError:
+            return JsonResponse({'message' : 'type error'}, status=400)
         except Company.DoesNotExist:
             return JsonResponse({'message' : 'company not existed'}, status=400)
         except Subcategory.DoesNotExist:
@@ -133,14 +139,10 @@ class JobPositionView(View):
         except json.JSONDecodeError:
             return JsonResponse({'message' : 'json decode error'}, status=400)
     
+
     def patch(self, request):
         try:
             data = json.loads(request.body)
-            
-            company_id = data.get('company_id', None)
-            
-            if company_id:
-                return JsonResponse({'message' : 'cannot change company id'}, status=400)
             
             position_id    = data.get('position_id', None)
             subcategory_id = data.get('subcategory_id', None)
@@ -149,6 +151,12 @@ class JobPositionView(View):
                 return JsonResponse({'message' : 'position id or subcategory id is required'}, status=400)
             
             position_instance = Position.objects.get(id=position_id)
+            
+            company_id = data.get('company_id', position_instance.companies_id)
+            
+            if position_instance.companies_id != company_id:
+                return JsonResponse({'message' : 'you cannot change company id'}, status=400)
+            
             
             position_instance.subcategories = Subcategory.objects.get(id=subcategory_id)
             position_instance.title         = data.get('title', position_instance.title)
@@ -161,7 +169,7 @@ class JobPositionView(View):
             
             position_instance.save()
 
-            return JsonResponse({'message' : 'position updated'}, status=200)
+            return JsonResponse({'message' : 'update success'}, status=200)
             
         except Position.DoesNotExist:
             return JsonResponse({'message' : 'position not existed'}, status=400)
@@ -188,7 +196,7 @@ class JobPositionView(View):
             position_instance.status = 'deleted'
             position_instance.save()
             
-            return JsonResponse({'message' : 'position deleted'}, status=200)
+            return JsonResponse({'message' : 'deletion success'}, status=200)
     
         except Position.DoesNotExist:
             return JsonResponse({'message' : 'position not existed'}, status=400)
