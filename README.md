@@ -1,4 +1,4 @@
-# wanted_pre_onboarding
+# wanted pre-onboarding project
 <img width="500" height="380" alt="main_img" src="https://user-images.githubusercontent.com/89829943/174931264-a73ae343-19f6-4e0b-9304-cb828b3abc6f.png">
 
 ## 프로젝트 소개
