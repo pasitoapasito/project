@@ -113,10 +113,10 @@ class JobPositionView(View):
                 companies      = company,
                 subcategories  = subcategory,
                 title          = title,
-                position       = position,
                 technology     = technology,
                 status         = status,
                 defaults       = {
+                    'position'     : position,
                     'compensation' : compensation,
                     'description'  : description,
                     'due_date'     : due_date
